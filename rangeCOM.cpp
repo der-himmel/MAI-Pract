@@ -1,3 +1,5 @@
+//Взятие данных с дальномера
+
 #include <iostream>
 #include <iomanip>
 #include <ctime>
