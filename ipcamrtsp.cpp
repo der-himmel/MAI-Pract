@@ -1,3 +1,5 @@
+//Подключение к камере через RTSP
+
 #include <opencv2/opencv.hpp>
 
 int main() {
