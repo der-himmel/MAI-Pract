@@ -1,3 +1,5 @@
+//Управление зумом и фокусом камеры
+
 #include <iostream>
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
