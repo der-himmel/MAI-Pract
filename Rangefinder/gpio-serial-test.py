@@ -33,7 +33,7 @@ packet.append(0xBE)
 
 while 1:
         ser.write(packet)  #transmit
-        print("sent: ",  packet, '\n')
+        print("sent:     ",  packet, '\n')
         rec = ser.readline()
         print("received: ", rec, '\n')  #receive
         time.sleep(1)
