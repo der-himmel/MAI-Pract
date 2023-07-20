@@ -1,4 +1,6 @@
 //  rabotaet na linuxe
+//sudo g++ rangeM.cpp -o range-meters -lboost_system -lboost_serialization -pthread
+
 
 #include <iostream>
 #include <iomanip>
