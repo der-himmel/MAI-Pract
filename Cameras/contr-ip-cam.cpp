@@ -1,4 +1,6 @@
 //zoom (+focus)
+//sudo g++ control<>.cpp -o <name> -lboost_system -lcrypto -lcpprest -pthread
+
 
 #include <iostream>
 #include <cpprest/http_client.h>
