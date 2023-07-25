@@ -29,7 +29,7 @@ void Contr::recording()
 	distance = std::to_string(range->dist);
 
 	cv::putText(cam->res, distance, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 2);
-	cv::imshow("RTSP stream + Thermal output", cam->res);
+	//cv::imshow("RTSP stream + Thermal output", cam->res);
 
 	bool success = cv::imwrite(cam->filename, cam->res);
 
@@ -41,4 +41,7 @@ void Contr::recording()
 	{
 		std::cout << "Error: Image not saved." << std::endl;
 	}
+
+	open = cv::imread(cam->filename);
+	cv::imshow("Image", open);
 }
