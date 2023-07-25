@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <opencv2/opencv.hpp>
 #include "RangeF.h"
 #include "Cam.h"
 
@@ -9,6 +10,7 @@ private:
 	//int status;
 	//bool flag = 1;
 	std::string distance;
+	cv::Mat open;
 
 	RangeF* range;
 	Cam* cam;
