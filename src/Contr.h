@@ -21,8 +21,15 @@ private:
 	RangeF* range;
 	Cam* cam;
 
+	std::string cameraIpAddress = "172.16.0.5";
+	std::string cameraPort = "80";
+
+	std::string username = "admin";
+	std::string password = "Admin123";
+
 public:
 	Contr(Cam* cam, RangeF* range);
 	void operating();
 	void recording();
+	void listening();
 };
