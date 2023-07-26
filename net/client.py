@@ -27,10 +27,8 @@ while True:
     frame_data = data[:msg_size]
     data = data[msg_size:]
 
-    # Convert the received data back to a numpy array (frame)
     nparr = np.frombuffer(frame_data, np.uint8)
 
-    # Decode the frame
     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     print("getting frames...")
 
