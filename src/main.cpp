@@ -12,11 +12,9 @@ int main()
 {
     RangeF* range = new RangeF();
     Cam* cam = new Cam();
-
-    cout << "Rangefinder and both cameras' instances successfully created" << endl;
-    //sleep(1);
+    cout << "Rangefinder and both cameras' instances created successfully" << endl;
 
     Contr* control = new Contr(cam, range);
-
+    cout << "Control instance created successfully" << endl;
     control->operating();
 }
