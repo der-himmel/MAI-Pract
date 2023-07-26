@@ -29,21 +29,21 @@ void RangeF::printPacket(const std::vector<unsigned char>& packet)
 
 void RangeF::sendRequest()
 {
-    boost::asio::io_service io;
+    /*boost::asio::io_service io;
     boost::asio::serial_port serial(io, "/dev/ttyS0");
-    serial.set_option(boost::asio::serial_port_base::baud_rate(9600));
+    serial.set_option(boost::asio::serial_port_base::baud_rate(9600));*/
 
     std::vector<unsigned char> byteString = { 0xae, 0xa7, 0x04, 0x00, 0x05, 0x09, 0xbc, PACKET_END_BYTE }; //singe measurement
     //std::vector<unsigned char> byteString = { 0xae, 0xa7, 0x04, 0x00, 0x0e, 0x12, 0xbc, PACKET_END_BYTE }; //continuous measurement
 
-    boost::asio::write(serial, boost::asio::buffer(byteString));
+    //boost::asio::write(serial, boost::asio::buffer(byteString));
 
-    std::cout << "Sent byte string: ";
+    /*std::cout << "Sent byte string: ";
     for (const auto& byte : byteString)
     {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 }
 
 float RangeF::getDist()
@@ -52,7 +52,7 @@ float RangeF::getDist()
 
     //std::cout << "Receiving data..." << std::endl;
 
-    std::cout << "distance" << std::endl;
+    //std::cout << "distance" << std::endl;
     dist = 10.8;
 
     /*while (true)
