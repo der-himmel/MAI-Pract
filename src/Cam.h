@@ -15,11 +15,7 @@ private:
     cv::Mat getIpFrame();
     cv::Mat getThermalFrame();
 
-    void captureImage();
-    void removeImage();
-
 public:
-    std::string filename = "frame.jpg";
     cv::Mat res;
 
     Cam();
