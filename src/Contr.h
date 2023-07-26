@@ -1,14 +1,20 @@
 #pragma once
 #include <string>
+#include <iostream>
+#include <boost/asio.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <vector>
 #include "RangeF.h"
 #include "Cam.h"
 
 class Contr
 {
 private:
-	//int status;
-	//bool flag = 1;
+	boost::asio::io_service ioService;
+	boost::asio::ip::tcp::acceptor acceptor;
+	boost::asio::ip::tcp::socket clientSocket;
+
 	std::string distance;
 	cv::Mat open;
 
