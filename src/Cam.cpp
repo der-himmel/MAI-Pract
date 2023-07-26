@@ -2,7 +2,7 @@
 #include <cstdio>
 #include "Cam.h"
 
-Cam::Cam() : therm(0), ipcam(1)
+Cam::Cam() : therm(2), ipcam(1)
 {
     //cv::VideoCapture therm(0);
     //cv::VideoCapture ipcam;
@@ -10,6 +10,9 @@ Cam::Cam() : therm(0), ipcam(1)
     //cv::VideoCapture ipcam(1);
 
     //ipcam.open("rtsp://admin:Admin123@172.16.0.5:554/12");
+
+    therm.set(cv::CAP_PROP_FPS, 5);
+    ipcam.set(cv::CAP_PROP_FPS, 5);
 
     if (!this->ipcam.isOpened())
     {
@@ -50,53 +53,9 @@ void Cam::update()
     thermal = getThermalFrame();
 
     cv::resize(thermal, thermal, ipframe.size());
-    cv::applyColorMap(thermal, color, cv::COLORMAP_JET);
-    cv::hconcat(color, ipframe, res);
+    //cv::applyColorMap(thermal, color, cv::COLORMAP_JET);
+    cv::hconcat(thermal, ipframe, res);
 
     //cv::imshow("RTSP stream + Thermal output", res);
-    //removeImage();
-    //captureImage();
-
-    cv::waitKey(1);
+    //cv::waitKey(1);
 }
-
-/*void Cam::removeImage()
-{
-    bool success = std::remove(filename);
-
-    if (!success) 
-    {
-        std::cout << "Image file deleted successfully." << std::endl;
-    }
-    else 
-    {
-        std::cout << "Error: Unable to delete the image file." << std::endl;
-    }
-}*/
-
-void Cam::captureImage()
-{
-    bool success = cv::imwrite(filename, res);
-
-    if (success) 
-    {
-        std::cout << "Image saved as " << filename << std::endl;
-    }
-    else 
-    {
-        std::cout << "Error: Image not saved." << std::endl;
-    }
-}
-
-/*void Cam::zoomIN()
-{
-    
-}
-
-
-ipcam.release();
-therm.release();
-
-cv::destroyAllWindows();
-return 0;
-*/
