@@ -12,7 +12,7 @@ private:
     const unsigned char PACKET_END_BYTE = 0xbe;
 
 public:
-    float dist;
+    float dist = 1;
 
     RangeF();
     void printPacket(const std::vector<unsigned char>& packet);
