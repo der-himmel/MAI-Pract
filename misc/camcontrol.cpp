@@ -44,3 +44,40 @@ std::vector<char> data(512);
 	}
 
 	data.clear();
+
+
+/*uri_builder zoomOutUri;
+	zoomOutUri.set_scheme("http")
+		.set_host(cameraIpAddress)
+		.set_port(cameraPort)
+		.set_path("/ptzctrl.cgi?-step=0&-act=zoomout&-speed=1")
+		.append_query("zoom", "out");
+
+	uri_builder zoomInUri;
+	zoomInUri.set_scheme("http")
+		.set_host(cameraIpAddress)
+		.set_port(cameraPort)
+		.set_path("/ptzctrl.cgi?-step=0&-act=zoomin&-speed=1")
+		.append_query("zoom", "in");
+
+	uri_builder focusOutUri;
+	focusOutUri.set_scheme("http")
+		.set_host(cameraIpAddress)
+		.set_port(cameraPort)
+		.set_path("/ptzctrl.cgi?-step=0&-act=focusout&-speed=1")
+		.append_query("focus", "out");
+
+	uri_builder focusInUri;
+	focusInUri.set_scheme("http")
+		.set_host(cameraIpAddress)
+		.set_port(cameraPort)
+		.set_path("/ptzctrl.cgi?-step=0&-act=focusin&-speed=1")
+		.append_query("focus", "in");
+
+	http_client_config config;
+	config.set_credentials(web::credentials(username, password));
+
+	http_client zout(zoomOutUri.to_uri(), config);
+	http_client zin(zoomInUri.to_uri(), config);
+	http_client fout(focusOutUri.to_uri(), config);
+	http_client fin(focusInUri.to_uri(), config);*/
