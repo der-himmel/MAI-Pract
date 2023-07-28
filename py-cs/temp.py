@@ -7,6 +7,7 @@ import requests
 import threading
 import time
 
+
 class rangeFinder:
     def __init__(self, HOST) -> None:
         self.HOST = HOST
@@ -21,14 +22,14 @@ class rangeFinder:
         # print("Rangefinder is connected to client:", self.client_address, self.client_socket)
 
         self.ser = serial.Serial(
-            port='/dev/ttyS0',
+            port="/dev/ttyS0",
             baudrate=9600,
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            timeout=0.25
+            timeout=0.25,
         )
-        self.packet = bytearray(b'\xae\xa7\x04\x00\x05\x09\xbc\xbe')
+        self.packet = bytearray(b"\xae\xa7\x04\x00\x05\x09\xbc\xbe")
 
     def measureDist(self) -> None:
         self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,17 +42,18 @@ class rangeFinder:
         while True:
             try:
                 self.ser.write(self.packet)
-				rec = self.ser.readline()
-				
-				bytelist = bytes(rec)
-				if not bytelist:
-					continue
-					
-				dist = bytelist[8] * 0.1
-				print(dist, " meters")
-				packed_data = struct.pack('f', dist)
-				self.clientRF.sendall(packed_data)
-            
+                rec = self.ser.readline()
+
+                bytelist = bytes(rec)
+                if not bytelist:
+                    continue
+
+                else:
+                    dist = bytelist[8] * 0.1
+                    print(dist, " meters")
+                    packed_data = struct.pack("f", dist)
+                    self.clientRF.sendall(packed_data)
+
             except ConnectionError as err:
                 print("Rangefinder reading error...", err)
 
@@ -88,12 +90,12 @@ class camReceive:
 
             if len(data) > 0:
                 received_data = data.decode("utf-8")
-                #rec_uri = f"http://{self.username}:{self.password}@{self.cam_ip}:{self.cam_port}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
+                # rec_uri = f"http://{self.username}:{self.password}@{self.cam_ip}:{self.cam_port}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
                 rec_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
 
-                print(received_data, ':', rec_uri)
+                print(received_data, ":", rec_uri)
                 response = requests.get(rec_uri, auth=(self.username, self.password))
-                
+
                 print("Response status: ", response.status_code)
 
             time.sleep(1)
@@ -103,11 +105,11 @@ class cvStreamServer:
     def __init__(self, HOST) -> None:
         self.therm = cv2.VideoCapture(0)
         self.ipcam = cv2.VideoCapture
-        ipcam.open("rtsp://admin:Admin123@172.16.0.5:554/12")
-        cv2.Mat = color
-        
-        therm.set(cv2.CAP_PROP_FPS, 25);
-        ipcam.set(cv2.CAP_PROP_FPS, 25);
+        self.ipcam.open("rtsp://admin:Admin123@172.16.0.5:554/12")
+        cv2.Mat = self.color, self.res
+
+        self.therm.set(cv2.CAP_PROP_FPS, 25)
+        self.ipcam.set(cv2.CAP_PROP_FPS, 25)
         cv2.waitKey(300)
 
         self.HOST = HOST
@@ -133,20 +135,20 @@ class cvStreamServer:
         while True:
             ret1, tframe = self.therm.read()
             ret2, cframe = self.ipcam.read()
-            
-            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE);
-            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE);
-            cv2.resize(tframe, tframe, cv2.Size(400, 352));
-            cv2.applyColorMap(tframe, color, cv2.COLORMAP_JET);
-            cv2.hconcat(color, cframe, res);
-            
-            frame_data = cv2.imencode('.png', res)[1].tobytes()
+
+            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE)
+            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE)
+            cv2.resize(tframe, tframe, cv2.Size(400, 352))
+            cv2.applyColorMap(tframe, self.color, cv2.COLORMAP_JET)
+            cv2.hconcat(self.color, cframe, self.res)
+
+            frame_data = cv2.imencode(".png", res)[1].tobytes()
 
             msg_size = struct.pack("Q", len(frame_data))
             self.client_socket.sendall(msg_size + frame_data)
 
             cv2.imshow("SOURCE", res)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         self.therm.release()
