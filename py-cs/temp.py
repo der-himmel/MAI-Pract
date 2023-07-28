@@ -157,3 +157,15 @@ if __name__ == "__main__":
     range_thread.join()
     contr_thread.join()
    # cam_thread.join()
+
+
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.9/threading.py", line 954, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.9/threading.py", line 892, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/malina/Desktop/final/rc-control.py", line 51, in measureDist
+    self.serverRF.sendall(packed_data)
+BrokenPipeError: [Errno 32] Broken pipe
+
