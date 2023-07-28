@@ -43,8 +43,8 @@ class rangeFinder:
             self.ser.write(self.packet)
             rec = self.ser.readline()
 
-            # bytelist = bytes(rec)
-            dist = bytes(rec)[8] * 0.1
+            bytelist = bytes(rec)
+            dist = bytelist[8] * 0.1
             print(dist, " meters")
 
             packed_data = struct.pack('f', dist)
@@ -131,7 +131,7 @@ class cvStreamServer:
 
 
 if __name__ == "__main__":
-    HOST = '192.168.2.13'
+    HOST = "192.168.2.13"
     # HOST = "127.0.0.1"
 
     # server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -143,17 +143,17 @@ if __name__ == "__main__":
     # print("Connected to client:", client_address)
 
     range_finder = rangeFinder(HOST)
-    # webcam = cvStreamServer(HOST)
+#    webcam = cvStreamServer(HOST)
     cam_control = camReceive(HOST)
 
     range_thread = threading.Thread(target=range_finder.measureDist)
-    # cam_thread = threading.Thread(target=webcam.videoStream)
+ #   cam_thread = threading.Thread(target=webcam.videoStream)
     contr_thread = threading.Thread(target=cam_control.reqProcessing)
 
     range_thread.start()
-    # cam_thread.start()
+  #  cam_thread.start()
     contr_thread.start()
 
     range_thread.join()
     contr_thread.join()
-    # cam_thread.join()
+   # cam_thread.join()
