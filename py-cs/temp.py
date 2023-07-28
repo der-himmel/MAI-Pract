@@ -39,23 +39,21 @@ class rangeFinder:
         print("Rangefinder is waiting for a client to connect...")
         self.clientRF, self.client_address = self.serverRF.accept()
         print("Rangefinder is connected to client:", self.client_address, self.clientRF)
+        
         while True:
-            try:
-                self.ser.write(self.packet)
-                rec = self.ser.readline()
+			self.ser.write(self.packet)
+			rec = self.ser.readline()
 
+			try:
                 bytelist = bytes(rec)
-                if not bytelist:
-                    continue
+                dist = bytelist[8] * 0.1
+                print(dist, " meters")
+                packed_data = struct.pack("f", dist)
+                self.clientRF.sendall(packed_data)
 
-                else:
-                    dist = bytelist[8] * 0.1
-                    print(dist, " meters")
-                    packed_data = struct.pack("f", dist)
-                    self.clientRF.sendall(packed_data)
-
-            except ConnectionError as err:
+            except IndexError as err:
                 print("Rangefinder reading error...", err)
+                continue
 
 
 class camReceive:
@@ -104,9 +102,9 @@ class camReceive:
 class cvStreamServer:
     def __init__(self, HOST) -> None:
         self.therm = cv2.VideoCapture(0)
-        self.ipcam = cv2.VideoCapture
-        self.ipcam.open("rtsp://admin:Admin123@172.16.0.5:554/12")
-        cv2.Mat = self.color, self.res
+        self.ipcam = cv2.VideoCapture("rtsp://admin:Admin123@172.16.0.5:554/12")
+        
+        #cv2.Mat color, res
 
         self.therm.set(cv2.CAP_PROP_FPS, 25)
         self.ipcam.set(cv2.CAP_PROP_FPS, 25)
@@ -136,13 +134,14 @@ class cvStreamServer:
             ret1, tframe = self.therm.read()
             ret2, cframe = self.ipcam.read()
 
-            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE)
-            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE)
-            cv2.resize(tframe, tframe, cv2.Size(400, 352))
-            cv2.applyColorMap(tframe, self.color, cv2.COLORMAP_JET)
-            cv2.hconcat(self.color, cframe, self.res)
+            tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
+            tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
+            
+            tframe = cv2.resize(tframe, (400, 352))
+            #color = cv2.applyColorMap(tframe, cv2.COLORMAP_JET)
+            res = cv2.hconcat([tframe, cframe])
 
-            frame_data = cv2.imencode(".png", res)[1].tobytes()
+            frame_data = cv2.imencode(".jpg", res)[1].tobytes()
 
             msg_size = struct.pack("Q", len(frame_data))
             self.client_socket.sendall(msg_size + frame_data)
