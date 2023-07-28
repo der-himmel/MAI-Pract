@@ -39,12 +39,12 @@ class rangeFinder:
         print("Rangefinder is waiting for a client to connect...")
         self.clientRF, self.client_address = self.serverRF.accept()
         print("Rangefinder is connected to client:", self.client_address, self.clientRF)
-        
-        while True:
-			self.ser.write(self.packet)
-			rec = self.ser.readline()
 
-			try:
+        while True:
+            self.ser.write(self.packet)
+            rec = self.ser.readline()
+
+            try:
                 bytelist = bytes(rec)
                 dist = bytelist[8] * 0.1
                 print(dist, " meters")
@@ -103,8 +103,8 @@ class cvStreamServer:
     def __init__(self, HOST) -> None:
         self.therm = cv2.VideoCapture(0)
         self.ipcam = cv2.VideoCapture("rtsp://admin:Admin123@172.16.0.5:554/12")
-        
-        #cv2.Mat color, res
+
+        # cv2.Mat color, res
 
         self.therm.set(cv2.CAP_PROP_FPS, 25)
         self.ipcam.set(cv2.CAP_PROP_FPS, 25)
@@ -136,9 +136,9 @@ class cvStreamServer:
 
             tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
             tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
-            
+
             tframe = cv2.resize(tframe, (400, 352))
-            #color = cv2.applyColorMap(tframe, cv2.COLORMAP_JET)
+            # color = cv2.applyColorMap(tframe, cv2.COLORMAP_JET)
             res = cv2.hconcat([tframe, cframe])
 
             frame_data = cv2.imencode(".jpg", res)[1].tobytes()
