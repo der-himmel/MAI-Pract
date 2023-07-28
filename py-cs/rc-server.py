@@ -10,15 +10,15 @@ import time
 class rangeFinder:
     def __init__(self, HOST) -> None:
         self.HOST = HOST
-        self.PORT_R = 2222
+        self.PORT_RS = 2222
 
-        self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serverRF.bind((self.HOST, self.PORT_R))
-        self.serverRF.listen()
+        # self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.serverRF.bind((self.HOST, self.PORT_RS))
+        # self.serverRF.listen()
 
-        print("Rangefinder is waiting for a client to connect...")
-        self.client_socket, self.client_address = self.serverRF.accept()
-        print("Rangefinder is connected to client:", self.client_address, self.client_socket)
+        # print("Rangefinder is waiting for a client to connect...")
+        # self.client_socket, self.client_address = self.serverRF.accept()
+        # print("Rangefinder is connected to client:", self.client_address, self.client_socket)
 
         self.ser = serial.Serial(
             port='/dev/ttyS0',
@@ -31,15 +31,13 @@ class rangeFinder:
         self.packet = bytearray(b'\xae\xa7\x04\x00\x05\x09\xbc\xbe')
 
     def measureDist(self) -> None:
-        # PORT_R = 11112
+        self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverRF.bind((self.HOST, self.PORT_RS))
+        self.serverRF.listen()
 
-        # self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.server.bind((HOST, PORT_R))
-        # self.server.listen()
-
-        # print("Rangefinder is waiting for a client to connect...")
-        # self.client_socket, self.client_address = self.server.accept()
-        # print("Rangefinder is connected to client:", self.client_address, self.client_socket)
+        print("Rangefinder is waiting for a client to connect...")
+        self.clientRF, self.client_address = self.serverRF.accept()
+        print("Rangefinder is connected to client:", self.client_address, self.clientRF)
 
         while True:
             self.ser.write(self.packet)
@@ -77,11 +75,11 @@ class camReceive:
         self.serverCR.listen()
 
         print("Controls are waiting for a client to connect...")
-        self.client_socket, self.client_address = self.serverCR.accept()
-        print("Controls are connected to client:", self.client_address, self.client_socket)
+        self.clientCR, self.client_address = self.serverCR.accept()
+        print("Controls are connected to client:", self.client_address, self.clientCR)
 
         while True:
-            data = self.client_socket.recv(1024)
+            data = self.clientCR.recv(1024)
 
             if len(data) > 0:
                 received_data = data.decode("utf-8")
@@ -134,9 +132,8 @@ class cvStreamServer:
 
 
 if __name__ == "__main__":
-    # HOST = '192.168.2.13'
-    HOST = "127.0.0.1"
-    # PORT = 11111
+    HOST = '192.168.2.13'
+    # HOST = "127.0.0.1"
 
     # server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # server.bind((HOST, PORT))
@@ -146,18 +143,18 @@ if __name__ == "__main__":
     # client_socket, client_address = server.accept()
     # print("Connected to client:", client_address)
 
-    # range_finder = rangeFinder(HOST)
-    webcam = cvStreamServer(HOST)
+    range_finder = rangeFinder(HOST)
+    # webcam = cvStreamServer(HOST)
     cam_control = camReceive(HOST)
 
-    # range_thread = threading.Thread(target=range_finder.measureDist)
-    cam_thread = threading.Thread(target=webcam.videoStream)
+    range_thread = threading.Thread(target=range_finder.measureDist)
+    # cam_thread = threading.Thread(target=webcam.videoStream)
     contr_thread = threading.Thread(target=cam_control.reqProcessing)
 
-    # range_thread.start()
-    cam_thread.start()
+    range_thread.start()
+    # cam_thread.start()
     contr_thread.start()
 
-    # range_thread.join()
+    range_thread.join()
     contr_thread.join()
-    cam_thread.join()
+    # cam_thread.join()
