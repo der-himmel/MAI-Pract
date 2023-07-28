@@ -28,16 +28,16 @@ class cvStreamClient:
                 packet = self.clientCV.recv(4 * 1024)
                 if not packet:
                     break
-                data += packet
+                self.data += packet
             packed_msg_size = self.data[:self.payload_size]
-            self.data = data[self.payload_size:]
+            self.data = self.data[self.payload_size:]
             msg_size = struct.unpack("Q", packed_msg_size)[0]
 
-            while len(data) < msg_size:
-                data += self.clientCV.recv(4 * 1024)
+            while len(self.data) < msg_size:
+                self.data += self.clientCV.recv(4 * 1024)
 
-            frame_data = data[:msg_size]
-            data = data[msg_size:]
+            frame_data = self.data[:msg_size]
+            self.data = self.data[msg_size:]
 
             nparr = np.frombuffer(frame_data, np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -86,8 +86,46 @@ class cvStreamClient:
 #     cv2.destroyAllWindows()
 
 
+# class camSend:
+#     def __init__(self, HOST) -> None:
+#         self.interval = 1.0
+
+#         self.comm = ""
+#         self.HOST = HOST
+#         self.PORT_C = 1111
+
+#         self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         self.clientCS.connect((HOST, self.PORT_C))
+
+#     def sendComm(self) -> None:
+#         while True:
+#             start_time = time.time()
+
+#             if keyboard.is_pressed("up"):
+#                 self.comm = "zoomin"
+#             elif keyboard.is_pressed("down"):
+#                 self.comm = "zoomout"
+#             elif keyboard.is_pressed("left"):
+#                 self.comm = "focusout"
+#             elif keyboard.is_pressed("right"):
+#                 self.comm = "focusin"
+#             else:
+#                 self.comm = ""
+
+#             if self.comm:
+#                print(self.comm)
+#             self.clientCS.sendall(self.comm.encode("utf-8"))
+            
+#             elapsed_time = time.time() - start_time
+#             if elapsed_time < self.interval:
+#                 time.sleep(self.interval - elapsed_time)
+
 class camSend:
     def __init__(self, HOST) -> None:
+        self.interval = 0.5  # Set the interval to 0.5 seconds for 2 times per second
+        self.is_running = False
+        self.timer = None
+
         self.comm = ""
         self.HOST = HOST
         self.PORT_C = 1111
@@ -96,8 +134,9 @@ class camSend:
         self.clientCS.connect((HOST, self.PORT_C))
 
     def sendComm(self) -> None:
+        if not self.is_running:
+            self.is_running = True
 
-        while True:
             if keyboard.is_pressed("up"):
                 self.comm = "zoomin"
             elif keyboard.is_pressed("down"):
@@ -111,26 +150,20 @@ class camSend:
 
             if self.comm:
                print(self.comm)
-            self.clientCS.sendall(self.comm.encode("utf-8"))
-            time.sleep(0.5)
+               self.clientCS.sendall(self.comm.encode("utf-8"))
 
-    # while True:
-    #     data = conn.recv(1024).decode("utf-8")
-    #     if data == "ZoomIn":
-    #         print("Command ZoomIn received!")
-    #         # r=requests.post(https://admin:Admin123@172.16.0.5:8080/ptzctrl.cgi?-step=0&-act=zoomin&-speed=1)
+            self.is_running = False
 
-    #     if data == "ZoomOut":
-    #         print("Command ZoomOut received!")
-    #         # r=requests.post(https://admin:Admin123@172.16.0.5:8080/ptzctrl.cgi?-step=0&-act=zoomout&-speed=1)
+        self.timer = threading.Timer(self.interval, self.sendComm)
+        self.timer.start()
 
-    #     if data == "FocusIn":
-    #         print("Command FocusIn received!")
-    #         # r=requests.post(https://admin:Admin123@172.16.0.5:8080/ptzctrl.cgi?-step=0&-act=focusin&-speed=1)
+    def start_timer(self):
+        self.timer = threading.Timer(self.interval, self.sendComm)
+        self.timer.start()
 
-    #     if data == "FocusOut":
-    #         print("Command FocusOut received!")
-    #         # r=requests.post(https://admin:Admin123@172.16.0.5:8080/ptzctrl.cgi?-step=0&-act=focusout&-speed=1)
+    def stop_timer(self):
+        if self.timer:
+            self.timer.cancel()
 
 
 if __name__ == "__main__":
