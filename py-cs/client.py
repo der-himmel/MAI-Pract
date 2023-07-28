@@ -43,6 +43,8 @@ class cvStreamClient:
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             # print("getting frames...")
 
+            cv2.putText(frame, str(distance_rec.dist), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 1)
+
             cv2.imshow("OUTPUT", frame)
             cv2.waitKey(1)
 
@@ -122,7 +124,7 @@ class cvStreamClient:
 
 class camSend:
     def __init__(self, HOST) -> None:
-        self.interval = 0.5  # Set the interval to 0.5 seconds for 2 times per second
+        self.interval = 1
         self.is_running = False
         self.timer = None
 
@@ -165,19 +167,43 @@ class camSend:
         if self.timer:
             self.timer.cancel()
 
+class rangeClient:
+    def __init__(self, HOST) -> None:
+        self.dist = 0.0
+        self.HOST = HOST
+        self.PORT_RC = 2222
+
+    def getDist(self) -> None:
+        self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverRF.bind((self.HOST, self.PORT_RS))
+        self.serverRF.listen()
+
+        print("Rangefinder is waiting for a client to connect...")
+        self.clientRF, self.client_address = self.serverRF.accept()
+        print("Rangefinder is connected to client:", self.client_address, self.clientRF)
+        
+        while True:
+            data = self.clientRF.recv(4)
+            self.dist = struct.unpack('f', data)[0]
+            print(f'Range: {self.dist::.1f} metres.' )
+            time.sleep(0.25)
+
 
 if __name__ == "__main__":
-    HOST = "127.0.0.1"
+    HOST = "192.168.2.12"
 
-    cams_stream = cvStreamClient(HOST)
+    # cams_stream = cvStreamClient(HOST)
     ipcam_comm = camSend(HOST)
-    # distance_rec = 
+    distance_rec = rangeClient(HOST)
 
-    video_thread = threading.Thread(target=cams_stream.videoStream)
+    # video_thread = threading.Thread(target=cams_stream.videoStream)
     comm_thread = threading.Thread(target=ipcam_comm.sendComm)
+    range_thread = threading.Thread(target=distance_rec.getDist)
 
-    video_thread.start()
+    # video_thread.start()
     comm_thread.start()
+    range_thread.start()
 
-    video_thread.join()
+    # video_thread.join()
     comm_thread.join()
+    range_thread.join()
