@@ -38,17 +38,23 @@ class rangeFinder:
         print("Rangefinder is waiting for a client to connect...")
         self.clientRF, self.client_address = self.serverRF.accept()
         print("Rangefinder is connected to client:", self.client_address, self.clientRF)
-
         while True:
-            self.ser.write(self.packet)
-            rec = self.ser.readline()
+            try:
+                self.ser.write(self.packet)
+				rec = self.ser.readline()
+				
+				bytelist = bytes(rec)
+				if not bytelist:
+					continue
+					
+				dist = bytelist[8] * 0.1
+				print(dist, " meters")
+				packed_data = struct.pack('f', dist)
+				self.clientRF.sendall(packed_data)
+            
+            except ConnectionError as err:
+                print("Rangefinder reading error...", err)
 
-            bytelist = bytes(rec)
-            dist = bytelist[8] * 0.1
-            print(dist, " meters")
-
-            packed_data = struct.pack('f', dist)
-            self.serverRF.sendall(packed_data)
 
 class camReceive:
     def __init__(self, HOST) -> None:
@@ -82,17 +88,27 @@ class camReceive:
 
             if len(data) > 0:
                 received_data = data.decode("utf-8")
-                rec_uri = f"http://{self.username}:{self.password}@{self.cam_ip}:{self.cam_port}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
+                #rec_uri = f"http://{self.username}:{self.password}@{self.cam_ip}:{self.cam_port}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
+                rec_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
 
                 print(received_data, ':', rec_uri)
-                # requests.get(rec_uri, auth=(self.username, self.password))
+                response = requests.get(rec_uri, auth=(self.username, self.password))
+                
+                print("Response status: ", response.status_code)
 
             time.sleep(1)
 
 
 class cvStreamServer:
     def __init__(self, HOST) -> None:
-        self.cap = cv2.VideoCapture(4)
+        self.therm = cv2.VideoCapture(0)
+        self.ipcam = cv2.VideoCapture
+        ipcam.open("rtsp://admin:Admin123@172.16.0.5:554/12")
+        cv2.Mat = color
+        
+        therm.set(cv2.CAP_PROP_FPS, 25);
+        ipcam.set(cv2.CAP_PROP_FPS, 25);
+        cv2.waitKey(300)
 
         self.HOST = HOST
         self.PORT_CV = 3333
@@ -115,17 +131,26 @@ class cvStreamServer:
         print("Camera stream is connected to client:", self.client_address)
 
         while True:
-            ret, frame = self.cap.read()
-            frame_data = cv2.imencode('.jpg', frame)[1].tobytes()
+            ret1, tframe = self.therm.read()
+            ret2, cframe = self.ipcam.read()
+            
+            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE);
+            cv2.rotate(tframe, tframe, cv2.ROTATE_90_CLOCKWISE);
+            cv2.resize(tframe, tframe, cv2.Size(400, 352));
+            cv2.applyColorMap(tframe, color, cv2.COLORMAP_JET);
+            cv2.hconcat(color, cframe, res);
+            
+            frame_data = cv2.imencode('.png', res)[1].tobytes()
 
             msg_size = struct.pack("Q", len(frame_data))
             self.client_socket.sendall(msg_size + frame_data)
 
-            cv2.imshow("SOURCE", frame)
+            cv2.imshow("SOURCE", res)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        self.cap.release()
+        self.therm.release()
+        self.ipcam.release()
         self.client_socket.close()
         cv2.destroyAllWindows()
 
@@ -143,29 +168,17 @@ if __name__ == "__main__":
     # print("Connected to client:", client_address)
 
     range_finder = rangeFinder(HOST)
-#    webcam = cvStreamServer(HOST)
+    webcam = cvStreamServer(HOST)
     cam_control = camReceive(HOST)
 
     range_thread = threading.Thread(target=range_finder.measureDist)
- #   cam_thread = threading.Thread(target=webcam.videoStream)
+    cam_thread = threading.Thread(target=webcam.videoStream)
     contr_thread = threading.Thread(target=cam_control.reqProcessing)
 
     range_thread.start()
-  #  cam_thread.start()
+    cam_thread.start()
     contr_thread.start()
 
     range_thread.join()
     contr_thread.join()
-   # cam_thread.join()
-
-
-
-Traceback (most recent call last):
-  File "/usr/lib/python3.9/threading.py", line 954, in _bootstrap_inner
-    self.run()
-  File "/usr/lib/python3.9/threading.py", line 892, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/malina/Desktop/final/rc-control.py", line 51, in measureDist
-    self.serverRF.sendall(packed_data)
-BrokenPipeError: [Errno 32] Broken pipe
-
+    cam_thread.join()
