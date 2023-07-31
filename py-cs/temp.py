@@ -1,3 +1,5 @@
+# server-side prototype
+
 import socket
 import cv2
 import numpy as np
@@ -53,9 +55,9 @@ class rangeFinder:
             self.serverRF.bind((HOST, self.PORT_RS))
             self.serverRF.listen()
 
-            print("Stream is waiting for a client to connect...")
+            print("Rangefinder is waiting for a client to connect...")
             self.clientRF, self.client_address = self.serverRF.accept()
-            print("Camera stream is connected to client:", self.clientRF)
+            print("Rangefinder is connected to client:", self.clientRF)
 
             self.measureDist()
 
@@ -77,12 +79,20 @@ class rangeFinder:
                 bytelist = bytes(rec)
                 dist = bytelist[8] * 0.1
                 print(f"{dist:.1f} meters")
-                packed_data = struct.pack("f", dist)
-                self.clientRF.sendall(packed_data)
 
             except IndexError as err:
                 print("Rangefinder reading error...", err)
                 continue
+            
+            try:
+                packed_data = struct.pack("f", dist)
+                self.clientRF.sendall(packed_data)
+            except ConnectionResetError as CER:
+                print(f"catched error: {CER}")
+                self.rangeConnect()
+            except BrokenPipeError as BPE:
+                print(f"catched error: {BPE}")
+                self.rangeConnect()
 
 
 class camReceive:
@@ -125,9 +135,9 @@ class camReceive:
             self.serverCR.bind((HOST, self.PORT_C))
             self.serverCR.listen()
 
-            print("Stream is waiting for a client to connect...")
+            print("Control is waiting for a client to connect...")
             self.clientCR, self.client_address = self.serverCR.accept()
-            print("Camera stream is connected to client:", self.clientCR)
+            print("Camera control is connected to client:", self.clientCR)
 
             self.reqProcessing()
 
@@ -141,7 +151,11 @@ class camReceive:
         # print("Controls are connected to client:", self.client_address, self.clientCR)
 
         while True:
-            data = self.clientCR.recv(1024)
+            try:
+                data = self.clientCR.recv(1024)
+            except:
+                print("Error while fetching control commands...")
+                continue
 
             if len(data) > 0:
                 received_data = data.decode("utf-8")
@@ -214,21 +228,35 @@ class cvStreamServer:
         # print("Camera stream is connected to client:", self.client_address)
 
         while True:
-            ret1, tframe = self.therm.read()
-            ret2, cframe = self.ipcam.read()
+            try:
+                ret1, tframe = self.therm.read()
+                ret2, cframe = self.ipcam.read()
+            except:
+                print("Error while reading frames...")
+                continue
 
-            tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
-            tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
+            try:
+                tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
+                tframe = cv2.rotate(tframe, cv2.ROTATE_90_CLOCKWISE)
 
-            tframe = cv2.resize(tframe, (int(cframe.shape[0] / tframe.shape[0] * tframe.shape[1]), int(cframe.shape[0])))
-            #tframe = cv2.resize(tframe, (470, 352))
-            # color = cv2.applyColorMap(tframe, cv2.COLORMAP_JET)
-            res = cv2.hconcat([tframe, cframe])
+                tframe = cv2.resize(tframe, (int(cframe.shape[0] / tframe.shape[0] * tframe.shape[1]), int(cframe.shape[0])))
+                #tframe = cv2.resize(tframe, (470, 352))
+                # color = cv2.applyColorMap(tframe, cv2.COLORMAP_JET)
+                res = cv2.hconcat([tframe, cframe])
+            except:
+                print("Error while editing frames...")
+                continue
 
             frame_data = cv2.imencode(".jpg", res)[1].tobytes()
-
             msg_size = struct.pack("Q", len(frame_data))
-            self.client_socket.sendall(msg_size + frame_data)
+            try:
+                self.client_socket.sendall(msg_size + frame_data)
+            except ConnectionResetError as CER:
+                print(f"catched error: {CER}")
+                self.cvServerConnect()
+            except BrokenPipeError as BPE:
+                print(f"catched error: {BPE}")
+                self.cvServerConnect()
 
             cv2.imshow("SOURCE", res)
             if cv2.waitKey(1) & 0xFF == ord("q"):
