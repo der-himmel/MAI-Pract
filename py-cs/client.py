@@ -12,6 +12,7 @@ import time
 # PORT = 11111
 # client_socket.connect((HOST, PORT))
 
+
 class cvStreamClient:
     def __init__(self, HOST) -> None:
         self.data = b""
@@ -19,31 +20,64 @@ class cvStreamClient:
         self.HOST = HOST
         self.PORT_CV = 3333
 
-        self.clientCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.clientCV.connect((HOST, self.PORT_CV))
-    
+        # self.clientCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.clientCV.connect((self.HOST, self.PORT_CV))
+
+    # def cvStreamConnect(self):
+    # while True:
+    #     try:
+    #         self.clientCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #         self.clientCV.connect((self.HOST, self.PORT_CV))
+    #         self.videoStream()
+    #     except:
+    #         print("Couldn't connect to the CAMERA server... Reconnecting in 5 sec")
+    #         self.clientCV.close()
+    #         time.sleep(1)
+
     def videoStream(self) -> None:
+        self.clientCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.clientCV.connect((self.HOST, self.PORT_CV))
+
         while True:
             while len(self.data) < self.payload_size:
-                packet = self.clientCV.recv(4 * 1024)
-                if not packet:
-                    break
-                self.data += packet
-            packed_msg_size = self.data[:self.payload_size]
-            self.data = self.data[self.payload_size:]
+                try:
+                    packet = self.clientCV.recv(4 * 1024)
+                    if not packet:
+                        break
+                        # print("Error receiving packet...")
+                        # continue
+                    self.data += packet
+                except:
+                    print("Couldn't acquire data...")
+                    continue
+            packed_msg_size = self.data[: self.payload_size]
+            self.data = self.data[self.payload_size :]
             msg_size = struct.unpack("Q", packed_msg_size)[0]
 
             while len(self.data) < msg_size:
-                self.data += self.clientCV.recv(4 * 1024)
-
+                try:
+                    self.data += self.clientCV.recv(4 * 1024)
+                except:
+                    print("Some data was lost...")
+                    continue
             frame_data = self.data[:msg_size]
             self.data = self.data[msg_size:]
 
-            nparr = np.frombuffer(frame_data, np.uint8)
-            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            # print("getting frames...")
+            try:
+                nparr = np.frombuffer(frame_data, np.uint8)
+                frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                # print("getting frames...")
+            except:
+                print("Couldn't decode image...")
+                continue
 
-            cv2.putText(frame, str(distance_rec.dist), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 1)
+            # frame = cv2.resize(
+            #     frame,
+            #     (int(frame.shape[1] * 2), int(frame.shape[0] * 2)),
+            #     cv2.INTER_LINEAR,
+            # )
+
+            self.drawHUD(frame)
 
             cv2.imshow("OUTPUT", frame)
             cv2.waitKey(1)
@@ -51,93 +85,82 @@ class cvStreamClient:
         self.clientCV.close()
         cv2.destroyAllWindows()
 
+    def drawHUD(self, frame):
+        # heightT, widthT = frame.shape[0] -
+        # center_xT, center_yT = width // 2, height // 2
 
-# def video_stream():
-#     data = b""
-#     payload_size = struct.calcsize("Q")
+        # cv2.line(
+        #     image,
+        #     (center_xT - 20, center_yT),
+        #     (center_xT + 20, center_yT),
+        #     color,
+        #     thickness,
+        # )
+        # cv2.line(
+        #     image,
+        #     (center_xT, center_yT - 20),
+        #     (center_xT, center_yT + 20),
+        #     color,
+        #     thickness,
+        # )
 
-#     while True:
-#         while len(data) < payload_size:
-#             packet = client_socket.recv(4 * 1024)
-#             if not packet:
-#                 break
-#             data += packet
+        dist_string = f"RANGE: {distance_rec.dist:.1f}M"
 
-#         packed_msg_size = data[:payload_size]
-#         data = data[payload_size:]
-#         msg_size = struct.unpack("Q", packed_msg_size)[0]
+        (text_width, text_height), _ = cv2.getTextSize(
+            dist_string, cv2.FONT_HERSHEY_SIMPLEX, 1, 5
+        )
+        rect_x = int(frame.shape[1]) - 2 * text_width
+        rect_y = int(frame.shape[0]) - text_height
 
-#         while len(data) < msg_size:
-#             data += client_socket.recv(4 * 1024)
+        cv2.rectangle(
+            frame,
+            (rect_x, rect_y),
+            (rect_x + text_width, rect_y + text_height),
+            (0, 0, 0, 127),
+            cv2.FILLED,
+        )
 
-#         frame_data = data[:msg_size]
-#         data = data[msg_size:]
+        cv2.putText(
+            frame,
+            dist_string,
+            (rect_x, rect_y + text_height),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (255, 255, 255),
+            5,
+        )
 
-#         nparr = np.frombuffer(frame_data, np.uint8)
-#         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-#         # print("getting frames...")
+        return frame
 
-#         cv2.imshow("OUTPUT", frame)
-#         cv2.waitKey(1)
-        
-#         #key = cv2.waitKey(2) & 0xFF
-#         #if key == ord("q"):
-#         #    break
-
-#     client_socket.close()
-#     cv2.destroyAllWindows()
-
-
-# class camSend:
-#     def __init__(self, HOST) -> None:
-#         self.interval = 1.0
-
-#         self.comm = ""
-#         self.HOST = HOST
-#         self.PORT_C = 1111
-
-#         self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#         self.clientCS.connect((HOST, self.PORT_C))
-
-#     def sendComm(self) -> None:
-#         while True:
-#             start_time = time.time()
-
-#             if keyboard.is_pressed("up"):
-#                 self.comm = "zoomin"
-#             elif keyboard.is_pressed("down"):
-#                 self.comm = "zoomout"
-#             elif keyboard.is_pressed("left"):
-#                 self.comm = "focusout"
-#             elif keyboard.is_pressed("right"):
-#                 self.comm = "focusin"
-#             else:
-#                 self.comm = ""
-
-#             if self.comm:
-#                print(self.comm)
-#             self.clientCS.sendall(self.comm.encode("utf-8"))
-            
-#             elapsed_time = time.time() - start_time
-#             if elapsed_time < self.interval:
-#                 time.sleep(self.interval - elapsed_time)
 
 class camSend:
     def __init__(self, HOST) -> None:
-        self.interval = 1
-        self.is_running = False
-        self.timer = None
+        self.interval = 1.0
 
         self.comm = ""
         self.HOST = HOST
         self.PORT_C = 1111
 
-        self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.clientCS.connect((HOST, self.PORT_C))
+        # self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.clientCS.connect((self.HOST, self.PORT_C))
+
+    # def camSendConnect(self):
+    #     while True:
+    #         try:
+    #             self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #             self.clientCS.connect((self.HOST, self.PORT_C))
+    #             self.sendComm()
+    #         except:
+    #             print("Couldn't connect to the CONTROL server... Reconnecting in 5 sec")
+    #             self.clientCS.close()
+    #             time.sleep(1)
 
     def sendComm(self) -> None:
-        if not self.is_running:
-            self.is_running = True
+        self.clientCS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.clientCS.connect((self.HOST, self.PORT_C))
+
+        while True:
+            start_time = time.time()
 
             if keyboard.is_pressed("up"):
                 self.comm = "zoomin"
@@ -151,21 +174,13 @@ class camSend:
                 self.comm = ""
 
             if self.comm:
-               print(self.comm)
-               self.clientCS.sendall(self.comm.encode("utf-8"))
+                print(self.comm)
+            self.clientCS.sendall(self.comm.encode("utf-8"))
 
-            self.is_running = False
+            elapsed_time = time.time() - start_time
+            if elapsed_time < self.interval:
+                time.sleep(self.interval - elapsed_time)
 
-        self.timer = threading.Timer(self.interval, self.sendComm)
-        self.timer.start()
-
-    def start_timer(self):
-        self.timer = threading.Timer(self.interval, self.sendComm)
-        self.timer.start()
-
-    def stop_timer(self):
-        if self.timer:
-            self.timer.cancel()
 
 class rangeClient:
     def __init__(self, HOST) -> None:
@@ -173,37 +188,52 @@ class rangeClient:
         self.HOST = HOST
         self.PORT_RC = 2222
 
-    def getDist(self) -> None:
-        self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serverRF.bind((self.HOST, self.PORT_RS))
-        self.serverRF.listen()
+        # self.clientRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.clientRF.connect((self.HOST, self.PORT_RC))
 
-        print("Rangefinder is waiting for a client to connect...")
-        self.clientRF, self.client_address = self.serverRF.accept()
-        print("Rangefinder is connected to client:", self.client_address, self.clientRF)
-        
+    # def rangeClientConnect(self):
+    #     while True:
+    #         try:
+    #             self.clientRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #             self.clientRF.connect((self.HOST, self.PORT_RC))
+    #             self.getDist()
+    #         except:
+    #             print(
+    #                 "Couldn't connect to the RANGEFINDER server... Reconnecting in 5 sec"
+    #             )
+    #             self.clientRF.close()
+    #             time.sleep(1)
+
+    def getDist(self) -> None:
+        self.clientRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.clientRF.connect((self.HOST, self.PORT_RC))
+
         while True:
             data = self.clientRF.recv(4)
-            self.dist = struct.unpack('f', data)[0]
-            print(f'Range: {self.dist::.1f} metres.' )
+            self.dist = struct.unpack("f", data)[0]
+            print(f"Range: {self.dist:.1f} metres.")
             time.sleep(0.25)
 
 
 if __name__ == "__main__":
-    HOST = "192.168.2.12"
+    HOST = "192.168.2.13"
 
-    # cams_stream = cvStreamClient(HOST)
+    cams_stream = cvStreamClient(HOST)
     ipcam_comm = camSend(HOST)
     distance_rec = rangeClient(HOST)
 
-    # video_thread = threading.Thread(target=cams_stream.videoStream)
+    video_thread = threading.Thread(target=cams_stream.videoStream)
     comm_thread = threading.Thread(target=ipcam_comm.sendComm)
     range_thread = threading.Thread(target=distance_rec.getDist)
 
-    # video_thread.start()
-    comm_thread.start()
-    range_thread.start()
+    # range_thread = threading.Thread(target=distance_rec.rangeClientConnect)
+    # video_thread = threading.Thread(target=cams_stream.cvStreamConnect)
+    # comm_thread = threading.Thread(target=ipcam_comm.camSendConnect)
 
-    # video_thread.join()
-    comm_thread.join()
+    range_thread.start()
+    video_thread.start()
+    comm_thread.start()
+
     range_thread.join()
+    video_thread.join()
+    comm_thread.join()
