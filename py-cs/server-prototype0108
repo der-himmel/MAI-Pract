@@ -61,13 +61,13 @@ class rangeFinder:
                 self.measureDist()
             except OSError as OSE:
                 print(f"catch RF: Cannot assign requested address: {OSE}")
-                try:
-                    self.clientRF.close()
-                    # time.sleep(1)
-                except AttributeError as AE:
-                    print(f"catch: No client RF socket found {AE}")
-                    # time.sleep(1)
-                    self.rangeConnect()
+                # try:
+                #     self.clientRF.close()
+                #     time.sleep(1)
+                # except AttributeError as AE:
+                #     print(f"catch: No client RF socket found {AE}")
+                #     # time.sleep(1)
+                self.rangeConnect()
 
     def measureDist(self) -> None:
         # self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -151,14 +151,13 @@ class camReceive:
 
             except OSError as OSE:
                 print(f"catch CONTR: Cannot assign requested address: {OSE}")
-                # self.clientCR.close()
-                try:
-                    self.clientCR.close()
+                # try:
+                #     self.clientCR.close()
+                #     time.sleep(1)
+                # except AttributeError as AE:
+                #     print(f"catch: No client CR socket found {AE}")
                     # time.sleep(1)
-                except AttributeError as AE:
-                    print(f"catch: No client CR socket found {AE}")
-                    # time.sleep(1)
-                    self.controlServerConnect()
+                self.controlServerConnect()
                     
 
     def reqProcessing(self) -> None:
@@ -183,13 +182,13 @@ class camReceive:
             if len(data) > 0:
                 received_data = data.decode("utf-8")
                 # rec_uri = f"http://{self.username}:{self.password}@{self.cam_ip}:{self.cam_port}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=1"
-                rec_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=20"
-                stop_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act=stop&-speed=20"
+                rec_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act={received_data}&-speed=50"
+                stop_uri = f"http://{self.cam_ip}/ptzctrl.cgi?-step=0&-act=stop&-speed=50"
 
                 print(received_data, ":", rec_uri)
                 response = requests.get(rec_uri, auth=(self.username, self.password))
                 print("Response status: ", response.status_code)
-                time.sleep(0.5)
+                time.sleep(0.25)
                 requests.get(stop_uri, auth=(self.username, self.password))
 
 
@@ -245,10 +244,10 @@ class cvStreamServer:
                 print(f"catch CV: Cannot assign requested address: {OSE}")
                 try:
                     self.clientCV.close()
-                    # time.sleep(1)
+                    time.sleep(1)
                 except AttributeError as AE:
                     print(f"catch: No client CV socket found {AE}")
-                    # time.sleep(1)
+                #     # time.sleep(1)
                     self.cvServerConnect()
 
     def videoStream(self) -> None:
@@ -293,9 +292,19 @@ class cvStreamServer:
                 self.clientCV.sendall(msg_size + frame_data)
             except ConnectionResetError as CER:
                 print(f"catched error: {CER}")
+                # try:
+                #     self.clientCV.close()
+                #     time.sleep(1)
+                # except AttributeError as AE:
+                #     print(f"catch: No client CV socket found {AE}")
                 self.cvServerConnect()
             except BrokenPipeError as BPE:
                 print(f"catched error: {BPE}")
+                # try:
+                #     self.clientCV.close()
+                #     time.sleep(1)
+                # except AttributeError as AE:
+                #     print(f"catch: No client CV socket found {AE}")
                 self.cvServerConnect()
 
             cv2.imshow("SOURCE", self.resframe)
