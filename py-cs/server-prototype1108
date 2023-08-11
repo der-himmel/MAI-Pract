@@ -13,6 +13,7 @@ class rangeFinder:
         self.HOST = HOST
         self.PORT_RS = 2222
         self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverRF.bind((HOST, self.PORT_RS))
 
         self.ser = serial.Serial(
             port="/dev/ttyS0",
@@ -28,7 +29,7 @@ class rangeFinder:
         while True:
             try:
                 # self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.serverRF.bind((HOST, self.PORT_RS))
+                # self.serverRF.bind((HOST, self.PORT_RS))
                 self.serverRF.listen()
 
                 print("Rangefinder is waiting for a client to connect...")
@@ -82,12 +83,13 @@ class camReceive:
         self.HOST = HOST
         self.PORT_C = 1111
         self.serverCR = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverCR.bind((HOST, self.PORT_C))
 
     def controlServerConnect(self):
         while True:
             try:
                 # self.serverCR = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.serverCR.bind((HOST, self.PORT_C))
+                # self.serverCR.bind((HOST, self.PORT_C))
                 self.serverCR.listen()
 
                 print("Control is waiting for a client to connect...")
@@ -143,12 +145,13 @@ class cvStreamServer:
         self.HOST = HOST
         self.PORT_CV = 3333
         self.serverCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverCV.bind((HOST, self.PORT_CV))
 
     def cvServerConnect(self):
         while True:
             try:
                 # self.serverCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.serverCV.bind((HOST, self.PORT_CV))
+                # self.serverCV.bind((HOST, self.PORT_CV))
                 self.serverCV.listen()
 
                 print("Stream is waiting for a client to connect...")
