@@ -12,6 +12,7 @@ class rangeFinder:
     def __init__(self, HOST) -> None:
         self.HOST = HOST
         self.PORT_RS = 2222
+        self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.ser = serial.Serial(
             port="/dev/ttyS0",
@@ -26,7 +27,7 @@ class rangeFinder:
     def rangeConnect(self):
         while True:
             try:
-                self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.serverRF = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.serverRF.bind((HOST, self.PORT_RS))
                 self.serverRF.listen()
 
@@ -80,11 +81,12 @@ class camReceive:
 
         self.HOST = HOST
         self.PORT_C = 1111
+        self.serverCR = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def controlServerConnect(self):
         while True:
             try:
-                self.serverCR = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.serverCR = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.serverCR.bind((HOST, self.PORT_C))
                 self.serverCR.listen()
 
@@ -136,15 +138,16 @@ class cvStreamServer:
 
         self.therm.set(cv2.CAP_PROP_FPS, 25)
         self.ipcam.set(cv2.CAP_PROP_FPS, 25)
-        cv2.waitKey(200)
+        # cv2.waitKey(200)
 
         self.HOST = HOST
         self.PORT_CV = 3333
+        self.serverCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def cvServerConnect(self):
         while True:
             try:
-                self.serverCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.serverCV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.serverCV.bind((HOST, self.PORT_CV))
                 self.serverCV.listen()
 
